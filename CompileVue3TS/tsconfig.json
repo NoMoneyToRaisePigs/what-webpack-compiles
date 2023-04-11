@@ -2,7 +2,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "target": "ESNext",
-    "inlineSourceMap": true,
+    "sourceMap": true,
     "allowJs": true,
     "useDefineForClassFields": true,
     "module": "ESNext",
@@ -36,6 +36,6 @@
     "docs/**/*.vue",
   ],
   "exclude": [
-    "node_modules",
+    "./node_modules",
   ]
 }
