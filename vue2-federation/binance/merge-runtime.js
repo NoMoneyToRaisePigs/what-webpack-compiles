@@ -2,14 +2,6 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = class ModuleFedSingleRuntimePlugin {
-  // constructor(publicPath) {
-  //   this._options = {
-  //     remoteEntry: 'remoteEntry.js',
-  //     runtime: 'runtime.js',
-  //     publicPath
-  //   }
-  // }
-
   constructor(publicPath) {
     this._options = {
       remoteEntry: 'remoteEntry.js',

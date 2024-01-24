@@ -3,7 +3,7 @@ const { VueLoaderPlugin } = require("vue-loader");
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { ModuleFederationPlugin } = require('webpack').container; 
 const getRemoteConfig = require('./webpack.remotesv2.js')
-const PREFIX = 'federation-shell'
+const PREFIX = 'federation-binance'
 
 const ModuleFedSingleRuntimePlugin = require('./merge-runtime.js')
 
@@ -15,7 +15,7 @@ module.exports = {
         app: [path.resolve(__dirname, './src/main.js')]
       },
     output: {
-      uniqueName: 'shell',
+      uniqueName: 'binance',
       path: path.resolve(__dirname, './dist'),
       filename: `${PREFIX}/static/js/[name].js`,
       chunkFilename: `${PREFIX}/static/js/[name].js`,
@@ -44,28 +44,8 @@ module.exports = {
       modules: ['node_modules'],
     },
     devServer: {
-      port: 8081,
+      port: 8083,
       hot: true,
-      proxy: {
-        '/federation-share/': {
-          target: 'http://localhost:8082',
-          changeOrigin: true
-        },
-        '/federation-binance/': {
-          target: 'http://localhost:8083',
-          changeOrigin: true
-        },
-        '/': {
-          target: `http://localhost:8081/`,
-          pathRewrite: { '^/': `${PREFIX}` },
-          changeOrigin: false
-        }
-      },
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-        'Access-Control-Allow-Headers': '*'
-      },
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
@@ -120,16 +100,15 @@ module.exports = {
       }),
       new ModuleFedSingleRuntimePlugin(`${PREFIX}/static/js/`),
       new ModuleFederationPlugin({
-        name: 'shell',
+        name: 'binance',
         filename: `${PREFIX}/remoteEntry.js`,
         remotes: {
+          shell: getRemoteConfig('shell'),
           share: getRemoteConfig('share'),
-          binance: getRemoteConfig('binance')
-          // share: 'share@http://localhost:8082/remoteEntry.js',
+          // shell: 'shell@http://localhost:8081/remoteEntry.js',
         },
         exposes: {
-          './components': './src/components/index.js',
-          './utils': './src/utils/index.js',
+          './bcomponents': './src/components/index.js',
         },
         shared: {
           vue: {

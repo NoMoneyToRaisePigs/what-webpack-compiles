@@ -19,68 +19,94 @@ const remoteLoader = (remoteName) => {
   
     const successProxy = () => ({
       get: (request) => getModule(request),
-      init: (args) => {
-        const remoteUrl = getRemoteUrl(remoteName)
-        const cacheKey = `${remoteUrl}-${remoteName}`
-  
+      init: (args) => {  
         try {
-          if (!window.__ba_federation_module_cache__[cacheKey]) {
-            window.__ba_federation_module_cache__[cacheKey] = {
-              get: (request) => getModule(request),
-              init: (arg) => undefined
-            }
-
-          const injectedRemote = document.querySelector(`[src$="federation-${remoteName}/remoteEntry.js"]`)
-
-          if (injectedRemote && !injectedRemote.id) {
+          if(window[remoteName].__initialized__) {
             return
-          }
-  
-            return window[remoteName].init(args)
           } else {
-            return undefined
+            console.log(`${remoteName} init ---`)
+            window[remoteName].__initialized__ = true
+            return window[remoteName].init(args)
           }
         } catch (err) {
           logError(`Remote container ${remoteName} initialization failed - ${formatError(err)}`)
-          return undefined
+          return
         }
       }
     })
   
     return (resolve, reject) => {
-      window.__ba_federation_module_cache__ = window.__ba_federation_module_cache__ || {}
       const remoteUrl = getRemoteUrl(remoteName)
-      const remoteUrlX = `${window.location.origin}/federation-${remoteName}/remoteEntryx.js`
-      const cacheKey = `${remoteUrl}-${remoteName}`
-  
-      if (window.__ba_federation_module_cache__[cacheKey]) {
-        resolve(window.__ba_federation_module_cache__[cacheKey])
-        return
-      }
-  
-      let useX = false
-      const injectedRemote = document.querySelector(`[src$="federation-${remoteName}/remoteEntry.js"]`)
-      
-      if (injectedRemote && !injectedRemote.id) {
-        useX = true
-      }
+      // const alreadyInjected = document.querySelector(`[src$="federation-${remoteName}/remoteEntry.js"]`)
 
-      // if (document.querySelector(`#${remoteName}`)) {
-      //   // return
+      // if (alreadyInjected) {
+      //   if(window[remoteName]) {
+      //     resolve(successProxy())
+      //     return
+      //   } else {
+      //     const timer = setInterval(() => {
+      //       if(window[remoteName]) {
+      //         clearInterval(timer)
+      //         resolve(successProxy())
+      //       }
+      //     }, 100);
+  
+      //     return
+      //   }
+      // }
+      
+  
+      // if (alreadyInjected) {
       //   const timer = setInterval(() => {
       //     if(window[remoteName]) {
       //       clearInterval(timer)
-      //       resolve(successProxy())
+      //       setTimeout(() => {
+      //         resolve(successProxy())
+      //       })
       //     }
       //   }, 100);
 
       //   return
-      //   // useX = true
       // }
+
+      if(window[remoteName]?.__initialized__) {
+        resolve(successProxy())
+        return
+      }
+
+      const alreadyInjected = !!document.querySelector(`#${remoteName}`)
+
+      if (alreadyInjected) {
+        if (window[remoteName]) {
+          resolve(successProxy())
+          return
+        } else {
+          const timer = setInterval(() => {
+            if (window[remoteName]) {
+              clearInterval(timer)
+              resolve(successProxy())
+            }
+          }, 100)
   
+          return
+        }
+      }
+
+      if(document.querySelector(`[src$="../federation-${remoteName}/remoteEntry.js"]`)) {
+        resolve({
+          get: (request) => getModule(request),
+          init: (args) => {
+            console.log(`${remoteName} empty init`)
+            return
+          }
+        })
+
+        return
+      }
+
       const script = document.createElement('script')
   
-      script.src = useX ? remoteUrlX : remoteUrl
+      script.src = remoteUrl
       script.id = remoteName
   
       script.onload = () => {
@@ -108,7 +134,7 @@ const remoteLoader = (remoteName) => {
     }
   }
   
-  const getRemoteConfig = (remoteName) => `promise new Promise((${remoteLoader})('${remoteName}'))`
+  const getRemoteConfig = (remoteName) => `return window['__promise_${remoteName}_remote__'] ? window['__promise_${remoteName}_remote__'] : (window['__promise_${remoteName}_remote__'] = new Promise((${remoteLoader})('${remoteName}')))`
   
   module.exports = getRemoteConfig
   

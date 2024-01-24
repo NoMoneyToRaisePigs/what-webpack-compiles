@@ -5,7 +5,7 @@ module.exports = class ModuleFedSingleRuntimePlugin {
   constructor(publicPath) {
     this._options = {
       remoteEntry: 'remoteEntry.js',
-      runtime: 'runtime.js',
+      runtime: `runtime.js`,
       publicPath
     }
   }
@@ -25,9 +25,18 @@ module.exports = class ModuleFedSingleRuntimePlugin {
           if (pathname.includes(this._options.remoteEntry)) {
             // console.log('now myyyyyyyyyyyy logic')
             console.log('--------', `${this._options.publicPath}${this._options.runtime}`)
+
             const runtime = assets[`${this._options.publicPath}${this._options.runtime}`]
+            // const runtimeRmote = assets[`${this._options.publicPath}${this._options.runtime}`]
+
 
             assets[pathname] = new compiler.webpack.sources.ConcatSource(runtime.source(), '/* terence test */', source)
+            
+            const sections = pathname.split('.')
+            const newName = `${sections[0]}x.${sections[1]}`
+            console.log('xxxxxx', newName)
+            assets[newName] = source
+            
             // assets[pathname] = new compiler.webpack.sources.ConcatSource(source, '/* terence test */', runtime.source())
 
             const xxx = `${this._options.publicPath}${this._options.runtime}`

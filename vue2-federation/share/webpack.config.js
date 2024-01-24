@@ -2,7 +2,7 @@ const path = require("path");
 const { VueLoaderPlugin } = require("vue-loader");
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { ModuleFederationPlugin } = require('webpack').container; 
-const getRemoteConfig = require('./webpack.remotes.js')
+const getRemoteConfig = require('./webpack.remotesv2.js')
 const PREFIX = 'federation-share'
 
 const ModuleFedSingleRuntimePlugin = require('./merge-runtime.js')
@@ -36,10 +36,12 @@ module.exports = {
       devtoolFallbackModuleFilenameTemplate: 'webpack:///[resource-path]?[hash]'
     },
     resolve: {
-      extensions: [".js", ".vue"],
+      symlinks: false,
+      extensions: ['.ts', '.mjs', '.js', '.vue', '.json', '.wasm'],
       alias: {
         '@': path.resolve(__dirname, './src')
       },
+      modules: ['node_modules'],
     },
     devServer: {
       port: 8082,
@@ -54,13 +56,23 @@ module.exports = {
         overlay: {
           warnings: false
         }
-      }
+      },
+      proxy: {
+        '/federation-shell/': {
+          target: 'http://localhost:8081',
+          changeOrigin: true
+        },
+        '/federation-binance/': {
+          target: 'http://localhost:8083',
+          changeOrigin: true
+        }
+      },
     },
     optimization: {
       runtimeChunk: 'single',
       removeAvailableModules: false,
       removeEmptyChunks: false,
-      minimize: false
+      minimize: false,
     },
     module: {
       rules: [
@@ -101,7 +113,8 @@ module.exports = {
         name: 'share',
         filename: `${PREFIX}/remoteEntry.js`,
         remotes: {
-          shell: getRemoteConfig('shell'),
+          binance: getRemoteConfig('binance'),
+          // shell: getRemoteConfig('shell'),
           // shell: 'shell@http://localhost:8081/remoteEntry.js',
         },
         exposes: {
