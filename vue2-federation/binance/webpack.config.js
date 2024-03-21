@@ -2,7 +2,7 @@ const path = require("path");
 const { VueLoaderPlugin } = require("vue-loader");
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { ModuleFederationPlugin } = require('webpack').container; 
-const getRemoteConfig = require('./webpack.remotesv2.js')
+const getRemoteConfig = require('./webpack.remotes.js')
 const PREFIX = 'federation-binance'
 
 const ModuleFedSingleRuntimePlugin = require('./merge-runtime.js')
@@ -15,7 +15,7 @@ module.exports = {
         app: [path.resolve(__dirname, './src/main.js')]
       },
     output: {
-      uniqueName: 'binance',
+      uniqueName: '__federation_binance__',
       path: path.resolve(__dirname, './dist'),
       filename: `${PREFIX}/static/js/[name].js`,
       chunkFilename: `${PREFIX}/static/js/[name].js`,
@@ -60,6 +60,7 @@ module.exports = {
     },
     optimization: {
       runtimeChunk: 'single',
+      // runtimeChunk: false,
       removeAvailableModules: false,
       removeEmptyChunks: false,
       minimize: false,
@@ -98,17 +99,17 @@ module.exports = {
           'VUE_APP_TITLE': process.env.VUE_APP_TITLE
         }
       }),
-      new ModuleFedSingleRuntimePlugin(`${PREFIX}/static/js/`),
+      new ModuleFedSingleRuntimePlugin(PREFIX),
       new ModuleFederationPlugin({
-        name: 'binance',
+        name: '__federation_binance__',
         filename: `${PREFIX}/remoteEntry.js`,
         remotes: {
           shell: getRemoteConfig('shell'),
-          share: getRemoteConfig('share'),
+          // share: getRemoteConfig('share'),
           // shell: 'shell@http://localhost:8081/remoteEntry.js',
         },
         exposes: {
-          './bcomponents': './src/components/index.js',
+          './components/editor': './src/components/editor.vue',
         },
         shared: {
           vue: {

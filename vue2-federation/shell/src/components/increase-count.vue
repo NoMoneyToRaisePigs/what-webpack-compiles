@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h2>Shell Main Project</h2>
     <p>{{ count }}</p>
     <button @click="increment">Test Button</button>
   </div>

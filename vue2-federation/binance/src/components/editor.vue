@@ -6,8 +6,8 @@
       
   <script setup>
   import { ref } from 'vue'
-import { getName } from 'shell/utils'
+// import { getName } from 'shell/utils'
 
-const name = ref(getName())
-// const name = ref('self')
+// const name = ref(getName())
+const name = ref('self')
   </script>

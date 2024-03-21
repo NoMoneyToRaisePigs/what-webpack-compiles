@@ -1,18 +1,18 @@
-const remoteLoader = (remoteName) => {
+const remoteLoader = (remoteName, env, app) => {
+  const WINDOW_OBJECT_NAME = `__federation_${remoteName}__`
+
   const getRemoteUrl = (remoteName) => {
     const FEDERATION = 'federation'
     return `${window.location.origin}/${FEDERATION}-${remoteName}/remoteEntry.js`
   }
 
-  const logError = (message) => { console.error(message) }
-
   const formatError = (e) => (e instanceof Error ? `(${e.message})` : JSON.stringify(e))
 
   const getModule = (request) => {
     try {
-      return window[remoteName].get(request)
+      return window[WINDOW_OBJECT_NAME].get(request)
     } catch (err) {
-      logError(`(Script Loading succeed)Error loading module ${request} for ${remoteName}@${getRemoteUrl(remoteName)} - ${formatError(err)}`)
+      console.error(`(Script Loading succeed)Error loading module ${request} for ${remoteName}@${getRemoteUrl(remoteName)} - ${formatError(err)}`)
       return undefined
     }
   }
@@ -24,62 +24,59 @@ const remoteLoader = (remoteName) => {
       const cacheKey = `${remoteUrl}-${remoteName}`
 
       try {
-        if (!window.__ba_federation_module_cache__[cacheKey]) {
-          window.__ba_federation_module_cache__[cacheKey] = {
-            get: (request) => getModule(request),
-            init: (arg) => undefined
-          }
-
-          const injectedRemote = document.querySelector(`[src$="federation-${remoteName}/remoteEntry.js"]`)
-
-          if (injectedRemote && !injectedRemote.id) {
-            return
-          }
-
-          return window[remoteName].init(args)
+        if (window[WINDOW_OBJECT_NAME].__initialized__) {
+          return
         } else {
-          return undefined
+          console.log(`${remoteName} initialized...`)
+          window[WINDOW_OBJECT_NAME].__initialized__ = true
+          return window[WINDOW_OBJECT_NAME].init(args)
         }
       } catch (err) {
-        logError(`Remote container ${remoteName} initialization failed - ${formatError(err)}`)
+        console.error(`Remote container ${remoteName} initialization failed - ${formatError(err)}`)
         return undefined
       }
     }
   })
 
   return (resolve, reject) => {
-    window.__ba_federation_module_cache__ = window.__ba_federation_module_cache__ || {}
     const remoteUrl = getRemoteUrl(remoteName)
-    const remoteUrlX = `${window.location.origin}/federation-${remoteName}/remoteEntryx.js`
-    const cacheKey = `${remoteUrl}-${remoteName}`
 
-    if (window.__ba_federation_module_cache__[cacheKey]) {
-      resolve(window.__ba_federation_module_cache__[cacheKey])
+    if (window[WINDOW_OBJECT_NAME]?.__initialized__) {
+      resolve(successProxy())
       return
     }
 
-    let useX = false
-    const injectedRemote = document.querySelector(`[src$="federation-${remoteName}/remoteEntry.js"]`)
-    
-    if (injectedRemote && !injectedRemote.id) {
-      useX = true
+    const alreadyInjected = !!document.querySelector(`#${remoteName}`)
+
+    if (alreadyInjected) {
+      if (window[WINDOW_OBJECT_NAME]) {
+        resolve(successProxy())
+        return
+      } else {
+        const timer = setInterval(() => {
+          if (window[WINDOW_OBJECT_NAME]) {
+            clearInterval(timer)
+            resolve(successProxy())
+          }
+        }, 100)
+
+        return
+      }
     }
 
-    // if (document.querySelector(`#${remoteName}`)) {
-    //   // return
-    //   // useX = true
-    //   const timer = setInterval(() => {
-    //     if(window[remoteName]) {
-    //       clearInterval(timer)
-    //       resolve(successProxy())
-    //     }
-    //   }, 100);
-    //   return
-    // }
+    const injectedScript = document.querySelector(`[src$="federation-${remoteName}/remoteEntry.js"]`)
+    const isHost = injectedScript && !injectedScript.id
+
+    if (isHost) {
+      console.log('Host already initialized...')
+      window[WINDOW_OBJECT_NAME].__initialized__ = true
+      resolve(successProxy())
+      return
+    }
 
     const script = document.createElement('script')
-    
-    script.src = useX ? remoteUrlX : remoteUrl
+
+    script.src = remoteUrl
     script.id = remoteName
 
     script.onload = () => {
@@ -92,7 +89,7 @@ const remoteLoader = (remoteName) => {
       const fallBackProxy = {
         get: (request) => {
           // Fallback when the service is down
-          logError(`(Script Loading failed)Error loading module ${request} for ${remoteName}@${getRemoteUrl(remoteName)} - ${formatError(err)}`)
+          console.error(`(Script Loading failed)Error loading module ${request} for ${remoteName}@${getRemoteUrl(remoteName)} - ${formatError(err)}`)
           return Promise.resolve(() => () => `${remoteName}@${remoteUrl} is not available`)
         },
         init: (arg) => {
@@ -107,6 +104,6 @@ const remoteLoader = (remoteName) => {
   }
 }
 
-const getRemoteConfig = (remoteName) => `promise new Promise((${remoteLoader})('${remoteName}'))`
+const getRemoteConfig = (remoteName, env, app) => `return window['__promise_${remoteName}_remote__'] ? window['__promise_${remoteName}_remote__'] : (window['__promise_${remoteName}_remote__'] = new Promise((${remoteLoader})('${remoteName}', '${env}', '${app}')))`
 
 module.exports = getRemoteConfig

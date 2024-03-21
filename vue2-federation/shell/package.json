@@ -10,7 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "vue": "2.7.15"
+    "vue": "2.7.15",
+    "vue-router": "3.0.2"
   },
   "devDependencies": {
     "css-loader": "^6.8.1",

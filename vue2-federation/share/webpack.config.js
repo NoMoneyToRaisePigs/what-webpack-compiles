@@ -2,7 +2,7 @@ const path = require("path");
 const { VueLoaderPlugin } = require("vue-loader");
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { ModuleFederationPlugin } = require('webpack').container; 
-const getRemoteConfig = require('./webpack.remotesv2.js')
+const getRemoteConfig = require('./webpack.remotes.js')
 const PREFIX = 'federation-share'
 
 const ModuleFedSingleRuntimePlugin = require('./merge-runtime.js')
@@ -15,7 +15,7 @@ module.exports = {
         app: [path.resolve(__dirname, './src/main.js')]
       },
     output: {
-      uniqueName: 'share',
+      uniqueName: '__federation_share__',
       path: path.resolve(__dirname, './dist'),
       filename: `${PREFIX}/static/js/[name].js`,
       chunkFilename: `${PREFIX}/static/js/[name].js`,
@@ -70,6 +70,7 @@ module.exports = {
     },
     optimization: {
       runtimeChunk: 'single',
+      // runtimeChunk: false,
       removeAvailableModules: false,
       removeEmptyChunks: false,
       minimize: false,
@@ -108,24 +109,30 @@ module.exports = {
           'VUE_APP_TITLE': process.env.VUE_APP_TITLE
         }
       }),
-      new ModuleFedSingleRuntimePlugin(`${PREFIX}/static/js/`),
+      new ModuleFedSingleRuntimePlugin(PREFIX),
       new ModuleFederationPlugin({
-        name: 'share',
+        name: '__federation_share__',
         filename: `${PREFIX}/remoteEntry.js`,
         remotes: {
-          binance: getRemoteConfig('binance'),
-          // shell: getRemoteConfig('shell'),
+          // binance: getRemoteConfig('binance'),
+          shell: getRemoteConfig('shell'),
           // shell: 'shell@http://localhost:8081/remoteEntry.js',
         },
         exposes: {
           './utils': './src/utils/index.js',
+          './router': './src/router/index.js',
         },
         shared: {
           vue: {
             eager: true,
             singleton: true,
             requiredVersion: '2.7.15'
-          }
+          },
+          'vue-router': {
+            eager: true,
+            singleton: true,
+            requiredVersion: '3.0.2'
+          },
         }
       })
     ],

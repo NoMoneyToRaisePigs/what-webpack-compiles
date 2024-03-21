@@ -2,7 +2,7 @@ const path = require("path");
 const { VueLoaderPlugin } = require("vue-loader");
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { ModuleFederationPlugin } = require('webpack').container; 
-const getRemoteConfig = require('./webpack.remotesv2.js')
+const getRemoteConfig = require('./webpack.remotes.js')
 const PREFIX = 'federation-shell'
 
 const ModuleFedSingleRuntimePlugin = require('./merge-runtime.js')
@@ -15,7 +15,7 @@ module.exports = {
         app: [path.resolve(__dirname, './src/main.js')]
       },
     output: {
-      uniqueName: 'shell',
+      uniqueName: '__federation_shell__',
       path: path.resolve(__dirname, './dist'),
       filename: `${PREFIX}/static/js/[name].js`,
       chunkFilename: `${PREFIX}/static/js/[name].js`,
@@ -118,9 +118,9 @@ module.exports = {
           'VUE_APP_TITLE': process.env.VUE_APP_TITLE
         }
       }),
-      new ModuleFedSingleRuntimePlugin(`${PREFIX}/static/js/`),
+      new ModuleFedSingleRuntimePlugin(PREFIX),
       new ModuleFederationPlugin({
-        name: 'shell',
+        name: '__federation_shell__',
         filename: `${PREFIX}/remoteEntry.js`,
         remotes: {
           share: getRemoteConfig('share'),
@@ -128,15 +128,20 @@ module.exports = {
           // share: 'share@http://localhost:8082/remoteEntry.js',
         },
         exposes: {
-          './components': './src/components/index.js',
-          './utils': './src/utils/index.js',
+          './views/profile': './src/views/profile/index.vue',
+          './views/user': './src/views/user/index.vue',
         },
         shared: {
           vue: {
             eager: true,
             singleton: true,
             requiredVersion: '2.7.15'
-          }
+          },
+          'vue-router': {
+            eager: true,
+            singleton: true,
+            requiredVersion: '3.0.2'
+          },
         }
       })
     ],
