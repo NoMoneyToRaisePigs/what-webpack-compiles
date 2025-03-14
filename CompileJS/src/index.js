@@ -12,3 +12,7 @@ console.log(add(11, 12));
 
 // console.log(_add(11, 12))
 console.log(CommonAdd(11,12))
+
+import("./data").then((mo) => {
+    console.log(mo.default);
+  });

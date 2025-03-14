@@ -11,7 +11,7 @@
  const count = ref(10)
 
  const increaseCount = () => { 
-   count.value += 2
+   count.value += 7
  }
  </script>
  

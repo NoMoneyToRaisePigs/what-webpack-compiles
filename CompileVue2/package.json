@@ -1,18 +1,19 @@
 {
-  "name": "shell",
+  "name": "compilevue2",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "webpack serve --progress --config webpack.config.js",
-    "build": "webpack --config webpack.config.prod.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "vue": "2.7.15",
-    "vue-router": "3.0.2"
+    "vue": "2.7.14",
+    "vue-2-3": "^1.0.0",
+    "vue-router": "^3.6.5",
+    "vue3": "npm:vue@^3.2.33"
   },
   "devDependencies": {
     "css-loader": "^6.8.1",
@@ -20,8 +21,8 @@
     "sass": "1.33.0",
     "sass-loader": "^13.3.2",
     "vue-loader": "^15.10.1",
-    "webpack": "5.89.2",
-    "webpack-cli": "4.10.0",
-    "webpack-dev-server": "4.15.1"
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
   }
 }

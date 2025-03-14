@@ -5,9 +5,58 @@ const { ModuleFederationPlugin } = require('webpack').container;
 const getRemoteConfig = require('./webpack.remotes.js')
 const PREFIX = 'federation-shell'
 
-const ModuleFedSingleRuntimePlugin = require('./merge-runtime.js')
+// const ModuleFedSingleRuntimePlugin = require('./merge-runtime.js')
+const ApiCallPlugin = require('./ApiCallPlugin.js')
+
+
+const TerserPlugin = require('terser-webpack-plugin')
+
+const myConsole = console
+
+// myConsole.log = (...args) => {
+//   console.log('\x1b[36m%s\x1b[0m', '我是青色文字-', ...args)
+// }
+// var log = console.log;
+// console.log = function(){
+
+//   // 1. Convert args to a normal array
+//   var args = Array.from(arguments);
+//   // OR you can use: Array.prototype.slice.call( arguments );
+      
+//   // 2. Prepend log prefix log string
+//   args.unshift('\x1b[36m%s\x1b[0m', '我是青色文字-');
+      
+//   // 3. Pass along arguments to console.log
+//   log.apply(console, args);
+// }
+
+class CustomConsole {
+  constructor(prefix) {
+    this.prefix = prefix
+    this.logger = console
+  }
+
+  log(...args) {
+    this.logger.log('\x1b[36m%s\x1b[0m', this.prefix, ...args)
+  }
+
+  warn(...args) {
+    this.logger.warn('\x1b[36m%s\x1b[0m', this.prefix, ...args)
+  }
+
+  error(...args) {
+    this.logger.error('\x1b[36m%s\x1b[0m', this.prefix, ...args)
+  }
+
+  info(...args) {
+    this.logger.info('\x1b[36m%s\x1b[0m', this.prefix, ...args)
+  } 
+}
 
 module.exports = {
+    infrastructureLogging: {
+      console: new CustomConsole('xxxxxxxx'),
+    },
     mode: "development",
     devtool: 'inline-source-map',
     cache: false,
@@ -23,17 +72,17 @@ module.exports = {
       pathinfo: false,
       clean: true,
       publicPath: 'auto',
-      devtoolModuleFilenameTemplate: (info) => {
-        const resPath = info.resourcePath.split(path.sep).join('/')
-        const isVue = resPath.match(/\.vue$/)
-        const isGenerated = info.allLoaders
+      // devtoolModuleFilenameTemplate: (info) => {
+      //   const resPath = info.resourcePath.split(path.sep).join('/')
+      //   const isVue = resPath.match(/\.vue$/)
+      //   const isGenerated = info.allLoaders
 
-        const generated = `webpack-generated:///${resPath}?${info.hash}`
-        const vuesource = `your-source:///${resPath}`
+      //   const generated = `webpack-generated:///${resPath}?${info.hash}`
+      //   const vuesource = `your-source:///${resPath}`
 
-        return isVue && isGenerated ? generated : vuesource
-      },
-      devtoolFallbackModuleFilenameTemplate: 'webpack:///[resource-path]?[hash]'
+      //   return isVue && isGenerated ? generated : vuesource
+      // },
+      // devtoolFallbackModuleFilenameTemplate: 'webpack:///[resource-path]?[hash]'
     },
     resolve: {
       symlinks: false,
@@ -83,6 +132,10 @@ module.exports = {
       removeAvailableModules: false,
       removeEmptyChunks: false,
       minimize: false,
+      // concatenateModules: false,
+      // usedExports: true,
+      // minimize: true,
+      // minimizer: [new TerserPlugin()],
     },
     module: {
       rules: [
@@ -116,9 +169,11 @@ module.exports = {
         publicPath: 'auto',
         templateParameters: {
           'VUE_APP_TITLE': process.env.VUE_APP_TITLE
-        }
+        },
+        chunks: ['__federation_shell__', 'app'],
+        chunksSortMode: 'manual',
       }),
-      new ModuleFedSingleRuntimePlugin(PREFIX),
+      // new ModuleFedSingleRuntimePlugin(PREFIX),
       new ModuleFederationPlugin({
         name: '__federation_shell__',
         filename: `${PREFIX}/remoteEntry.js`,
@@ -128,9 +183,19 @@ module.exports = {
           // share: 'share@http://localhost:8082/remoteEntry.js',
         },
         exposes: {
-          './views/profile': './src/views/profile/index.vue',
-          './views/user': './src/views/user/index.vue',
+          "./views/profile": {
+            import: "./src/views/profile/index.vue",
+            name: "profile"
+          },
+          "./views/user": {
+            import: "./src/views/user/index.vue",
+            name: "user"
+          },
         },
+        // exposes: {
+        //   './views/profile': './src/views/profile/index.vue',
+        //   './views/user': './src/views/user/index.vue',
+        // },
         shared: {
           vue: {
             eager: true,
@@ -143,6 +208,7 @@ module.exports = {
             requiredVersion: '3.0.2'
           },
         }
-      })
+      }),
+      new ApiCallPlugin()
     ],
 }

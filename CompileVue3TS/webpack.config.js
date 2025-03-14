@@ -11,14 +11,24 @@ const path = require('path');
 const Webpack = require('webpack');
 const { VueLoaderPlugin } = require('vue-loader')
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-
+const { ModuleFederationPlugin } = require('webpack').container; 
 module.exports = {
   mode:'development',
   entry: './src/main.ts',
   output: {
-    filename: '[name].js',
-    chunkFilename: '[name].js',
+
+    filename: 'static/js/[name].js',
+    chunkFilename: 'static/js/[name].js',
+    assetModuleFilename: 'static/asset/[name][ext][query]',
+    pathinfo: false,
+    clean: true,
+
+
+    uniqueName: 'myVue3',
+    // filename: '[name].js',
+    // chunkFilename: '[name].js',
     path: path.resolve(__dirname, 'dist'),
+    publicPath: 'auto',
     devtoolModuleFilenameTemplate: (info) => {
       let resPath = info.resourcePath.split(path.sep).join("/");
       let isVue = resPath.match(/\.vue$/);
@@ -60,6 +70,9 @@ module.exports = {
    },
    resolve: {
       extensions: ['.ts', '.tsx', '.js'],
+      alias: {
+        '@': path.resolve(__dirname, './src')
+      },
    },
    module: {
       rules: [
@@ -126,27 +139,46 @@ module.exports = {
          template: './index.html'
       }),
       new Webpack.DefinePlugin({ __VUE_OPTIONS_API__: true, __VUE_PROD_DEVTOOLS__: true }),
+      new ModuleFederationPlugin({
+        name: "myVue3",
+        filename: "remoteEntry.js",
+        exposes: {
+          "./TestCount": "./src/components/test.vue",
+          "./renderer": "./src/utils/renderer.js",
+        },
+        // shared: {
+        //   vue: {
+        //     singleton: true,
+        //     eager: true,
+        //     requiredVersion: '3.2.47'
+        //   }
+        // }
+      }),
    ],
   // devtool: 'eval-source-map',
   devtool: 'inline-source-map',
   optimization: {
-    splitChunks: {
-      cacheGroups: {
-        vendors: {
-          name: 'chunk-vendors',
-          test: /[\\/]node_modules[\\/]/,
-          priority: -10,
-          chunks: 'initial'
-        },
-        common: {
-          name: 'chunk-common',
-          minChunks: 2,
-          priority: -20,
-          chunks: 'initial',
-          reuseExistingChunk: true
-        }
-      }
-    },
+    runtimeChunk: false,
+    removeAvailableModules: false,
+    removeEmptyChunks: false,
+    minimize: false
+    // splitChunks: {
+    //   cacheGroups: {
+    //     vendors: {
+    //       name: 'chunk-vendors',
+    //       test: /[\\/]node_modules[\\/]/,
+    //       priority: -10,
+    //       chunks: 'initial'
+    //     },
+    //     common: {
+    //       name: 'chunk-common',
+    //       minChunks: 2,
+    //       priority: -20,
+    //       chunks: 'initial',
+    //       reuseExistingChunk: true
+    //     }
+    //   }
+    // },
       // splitChunks: {
       //   chunks: 'initial',
       //   minSize: 20000,
@@ -170,6 +202,11 @@ module.exports = {
       // },
     },
    devServer: {
-    
+      port: 8082,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+        'Access-Control-Allow-Headers': '*'
+      },
     },
 };
