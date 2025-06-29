@@ -1,21 +1,21 @@
 const path = require("path");
-const { VueLoaderPlugin } = require("vue-loader");
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-const { ModuleFederationPlugin } = require('webpack').container; 
-const getRemoteConfig = require('./webpack.remotes.js')
-const PREFIX = 'federation-share'
+// const { ModuleFederationPlugin } = require('webpack').container; 
 
-const ModuleFedSingleRuntimePlugin = require('./merge-runtime.js')
+const PREFIX = 'federation-mf2'
+
+// const ModuleFedSingleRuntimePlugin = require('./merge-runtime.js')
+const { ModuleFederationPlugin } = require('@module-federation/enhanced/webpack');
 
 module.exports = {
     mode: "development",
     devtool: 'inline-source-map',
     cache: false,
     entry: {
-        app: [path.resolve(__dirname, './src/main.js')]
-      },
+        app: [path.resolve(__dirname, './src/index.js')]
+    },
     output: {
-      uniqueName: '__federation_share__',
+      uniqueName: '__federation_mf2__',
       path: path.resolve(__dirname, './dist'),
       filename: `${PREFIX}/static/js/[name].js`,
       chunkFilename: `${PREFIX}/static/js/[name].js`,
@@ -44,7 +44,7 @@ module.exports = {
       modules: ['node_modules'],
     },
     devServer: {
-      port: 8082,
+      port: 8086,
       hot: true,
       headers: {
         'Access-Control-Allow-Origin': '*',
@@ -58,14 +58,14 @@ module.exports = {
         }
       },
       proxy: {
-        '/federation-shell/': {
-          target: 'http://localhost:8081',
-          changeOrigin: true
-        },
-        '/federation-binance/': {
-          target: 'http://localhost:8083',
-          changeOrigin: true
-        }
+        // '/federation-vhost/': {
+        //   target: 'http://localhost:5173',
+        //   changeOrigin: true
+        // },
+        // '/federation-binance/': {
+        //   target: 'http://localhost:8083',
+        //   changeOrigin: true
+        // }
       },
     },
     optimization: {
@@ -77,22 +77,6 @@ module.exports = {
     },
     module: {
       rules: [
-        { test: /\.vue$/, loader: "vue-loader" },
-        {
-          test: /\.css|.sass|.scss$/,
-          use: [
-            'style-loader',
-            {
-              loader: 'css-loader',
-              options: {
-                sourceMap: false
-              }
-            },
-            {
-              loader: 'fast-sass-loader'
-            }
-          ]
-        },
         {
           test: /\.(svg|png|jpe?g|gif|webp)(\?.*)?$/,
           type: 'asset/resource'
@@ -100,38 +84,19 @@ module.exports = {
       ]
     },
     plugins: [
-      new VueLoaderPlugin(),
       new HtmlWebpackPlugin({
         template: path.resolve(__dirname, './index.html'),
         filename: `${PREFIX}/index.html`,
         publicPath: 'auto',
-        templateParameters: {
-          'VUE_APP_TITLE': process.env.VUE_APP_TITLE
-        }
       }),
-      new ModuleFedSingleRuntimePlugin(PREFIX),
       new ModuleFederationPlugin({
-        name: '__federation_share__',
-        filename: `${PREFIX}/remoteEntry.js`,
-        remotes: {
-          binance: getRemoteConfig('binance'),
-          shell: getRemoteConfig('shell'),
-        },
+        name: '__federation_mf2__',
+        filename: 'remoteEntry.js',
         exposes: {
-          './utils': './src/utils/index.js'
+          // Set the modules to be exported, default export as '.'
+          './utils': './src/index.js',
         },
-        shared: {
-          vue: {
-            eager: true,
-            singleton: true,
-            requiredVersion: '2.7.15'
-          },
-          'vue-router': {
-            eager: true,
-            singleton: true,
-            requiredVersion: '3.0.2'
-          },
-        }
-      })
+      }),
+    //   new ModuleFedSingleRuntimePlugin(PREFIX),
     ],
 }

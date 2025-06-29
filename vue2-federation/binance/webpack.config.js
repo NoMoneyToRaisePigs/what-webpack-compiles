@@ -105,8 +105,6 @@ module.exports = {
         filename: `${PREFIX}/remoteEntry.js`,
         remotes: {
           shell: getRemoteConfig('shell'),
-          // share: getRemoteConfig('share'),
-          // shell: 'shell@http://localhost:8081/remoteEntry.js',
         },
         exposes: {
           './components/editor': './src/components/editor.vue',

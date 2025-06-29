@@ -1,13 +1,10 @@
 import Vue from 'vue'
-
 import App from './App.vue'
-import router from 'share/router'
+import router from './router'
 
-// import { myExport } from './test-console'
-import Editor from 'binance/components/editor'
 
-// console.log(myExport)
-Vue.component('Editor', Editor)
+// import Editor from 'binance/components/editor'
+// Vue.component('Editor', Editor)
 
 new Vue({
   router,

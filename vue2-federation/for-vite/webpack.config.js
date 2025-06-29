@@ -3,7 +3,7 @@ const { VueLoaderPlugin } = require("vue-loader");
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { ModuleFederationPlugin } = require('webpack').container; 
 const getRemoteConfig = require('./webpack.remotes.js')
-const PREFIX = 'federation-share'
+const PREFIX = 'federation-vite'
 
 const ModuleFedSingleRuntimePlugin = require('./merge-runtime.js')
 
@@ -13,9 +13,9 @@ module.exports = {
     cache: false,
     entry: {
         app: [path.resolve(__dirname, './src/main.js')]
-      },
+    },
     output: {
-      uniqueName: '__federation_share__',
+      uniqueName: '__federation_vite__',
       path: path.resolve(__dirname, './dist'),
       filename: `${PREFIX}/static/js/[name].js`,
       chunkFilename: `${PREFIX}/static/js/[name].js`,
@@ -44,7 +44,7 @@ module.exports = {
       modules: ['node_modules'],
     },
     devServer: {
-      port: 8082,
+      port: 8085,
       hot: true,
       headers: {
         'Access-Control-Allow-Origin': '*',
@@ -58,14 +58,14 @@ module.exports = {
         }
       },
       proxy: {
-        '/federation-shell/': {
-          target: 'http://localhost:8081',
+        '/federation-vhost/': {
+          target: 'http://localhost:5173',
           changeOrigin: true
         },
-        '/federation-binance/': {
-          target: 'http://localhost:8083',
-          changeOrigin: true
-        }
+        // '/federation-binance/': {
+        //   target: 'http://localhost:8083',
+        //   changeOrigin: true
+        // }
       },
     },
     optimization: {
@@ -111,25 +111,52 @@ module.exports = {
       }),
       new ModuleFedSingleRuntimePlugin(PREFIX),
       new ModuleFederationPlugin({
-        name: '__federation_share__',
+        name: '__federation_vite__',
         filename: `${PREFIX}/remoteEntry.js`,
-        remotes: {
-          binance: getRemoteConfig('binance'),
-          shell: getRemoteConfig('shell'),
-        },
+        // remotes: {
+        //   // vhost: getRemoteConfig('vhost'),
+        //   viteRemote: `promise import("http://localhost:8080/assets/remoteEntry.js")`,
+        //   // viteRemote: `promise import("http://localhost:8080/assets/remoteEntry.js")`,
+        //   // viteRemote: `promise new Promise(resolve => {
+        //   //   const script = document.createElement('script');
+        //   //   script.src = 'http://localhost:8080/assets/remoteEntry.js';
+        //   //   script.onload = () => {
+        //   //     resolve(window.viteRemote);
+        //   //   };
+        //   //   document.head.appendChild(script);
+        //   // })`,
+        // },
+
+      // remotes: {
+      //   viteRemote: `promise import("http://localhost:5173/remoteEntry.js")`,
+      // },
+
+      // remotes: {
+      //   viteRemote: `viteRemote@http://localhost:8080/remoteEntry.js`, // Vite默认路径
+      // },
+
+      remotes: {
+        viteRemote: `promise new Promise((resolve) => {
+                      import("http://localhost:5173/remoteEntry.js").then(m => {
+                          resolve(m);
+                      });
+                  })`,
+      },
+
+
         exposes: {
-          './utils': './src/utils/index.js'
+          './utils': './src/utils/index.js',
         },
         shared: {
           vue: {
             eager: true,
             singleton: true,
-            requiredVersion: '2.7.15'
+            requiredVersion: '2.7.16'
           },
           'vue-router': {
             eager: true,
             singleton: true,
-            requiredVersion: '3.0.2'
+            requiredVersion: '3.6.5'
           },
         }
       })

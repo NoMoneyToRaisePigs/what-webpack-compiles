@@ -1,6 +1,6 @@
 <template>
     <div>
-        The User page
+        <h1>Shell - User Page</h1>
         <button @click="getInfo">Test </button>
         <pre>
             {{userData}}

@@ -1,7 +1,6 @@
 <template>
   <div>
-    <h2>share sub project</h2>
-    <!-- <Test /> -->
+    <h2>Share sub project - hello world component</h2>
   </div>
 </template>
     

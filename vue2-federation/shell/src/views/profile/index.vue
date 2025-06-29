@@ -1,44 +1,26 @@
 <template>
     <div>
-        The Profile page
-        {{ name }}
-        {{ res }}
-        <xxx :name="123"/>
-        <Test2 />
+        <h2>Shell - The Profile page</h2>
+        <div style="border: 1px solid red; margin: 10px;">
+            <p>Own Increse Component</p>
+            <IncreaseCount :increment="2" />
+        </div>
+        <div style="border: 1px solid blue; margin: 10px;">
+            <p>Binance Sub project Component</p>
+             <Editor :name="'123456'"/>
+        </div>
     </div>
 </template>
 
 <script>
-import xxx from 'binance/components/editor'
-import Test2 from '@/components/test.vue'
-import { myExport } from '../../test-console'
-console.log(myExport())
-import request from '@/utils/request'
+import Editor from 'binance/components/editor'
+import IncreaseCount from '@/components/increase-count.vue'
 
 export default {
     name: 'profile-view',
     components: {
-        xxx,
-        Test2
-    },
-    data() {
-        return {
-            name: myExport(),
-            display: null
-        }
-    },
-    mounted(){
-        this.getUserDataV2()
-    },
-    method: {
-        getUserDataV2(){
-            const res = request({
-                url: 'user/get-info-v2',
-                data: '123'
-            })
-
-            this.display = res
-        }
+        Editor,
+        IncreaseCount
     }
 } 
 

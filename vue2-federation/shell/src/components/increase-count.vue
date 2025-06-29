@@ -7,6 +7,7 @@
     
 <script setup>
 import { ref } from 'vue'
+import { double } from 'share/utils'
 
 const props = defineProps({
   increment: {
@@ -17,7 +18,8 @@ const props = defineProps({
 })
 
 const count = ref(0)
+
 function increment() {
-  count.value += props.increment
+  count.value += double(props.increment)
 }
 </script>
