@@ -6,6 +6,7 @@ const getRemoteConfig = require('./webpack.remotes.js')
 const PREFIX = 'federation-shell'
 
 const ModuleFedSingleRuntimePlugin = require('./merge-runtime.js')
+const shared = require('./sharedDependencies')
 
 module.exports = {
     mode: "development",
@@ -128,15 +129,10 @@ module.exports = {
           binance: getRemoteConfig('binance')
         },
         exposes: {
-          "./components/increase-count": "./src/components/increase-count.vue"
+          "./components/increase-count": "./src/components/increase-count.vue",
+          "./utils": "./src/utils/index.js",
         },
-        shared: {
-          vue: {
-            eager: true,
-            singleton: true,
-            requiredVersion: '2.7.16'
-          }
-        }
+        shared,
       }),
     ],
 }

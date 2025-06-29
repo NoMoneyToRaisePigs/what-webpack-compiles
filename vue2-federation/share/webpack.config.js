@@ -6,6 +6,7 @@ const getRemoteConfig = require('./webpack.remotes.js')
 const PREFIX = 'federation-share'
 
 const ModuleFedSingleRuntimePlugin = require('./merge-runtime.js')
+const shared = require('./sharedDependencies')
 
 module.exports = {
     mode: "development",
@@ -69,7 +70,7 @@ module.exports = {
       },
     },
     optimization: {
-      runtimeChunk: 'single',
+      // runtimeChunk: 'single',
       // runtimeChunk: false,
       removeAvailableModules: false,
       removeEmptyChunks: false,
@@ -107,7 +108,9 @@ module.exports = {
         publicPath: 'auto',
         templateParameters: {
           'VUE_APP_TITLE': process.env.VUE_APP_TITLE
-        }
+        },
+        chunks: ['__federation_share__', 'app'],
+        chunksSortMode: 'manual',
       }),
       new ModuleFedSingleRuntimePlugin(PREFIX),
       new ModuleFederationPlugin({
@@ -120,13 +123,7 @@ module.exports = {
         exposes: {
           './utils': './src/utils/index.js'
         },
-        shared: {
-          vue: {
-            eager: true,
-            singleton: true,
-            requiredVersion: '2.7.16'
-          }
-        }
+        shared,
       })
     ],
 }

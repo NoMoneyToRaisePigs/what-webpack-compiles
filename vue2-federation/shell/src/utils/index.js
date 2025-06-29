@@ -1,3 +1,4 @@
 import { getName } from './formatter';
+const constantFromShell = 'constantFromShell'
 
-export { getName }
+export { getName, constantFromShell }

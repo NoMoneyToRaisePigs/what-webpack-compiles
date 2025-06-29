@@ -6,6 +6,7 @@ const getRemoteConfig = require('./webpack.remotes.js')
 const PREFIX = 'federation-binance'
 
 const ModuleFedSingleRuntimePlugin = require('./merge-runtime.js')
+const shared = require('./sharedDependencies')
 
 module.exports = {
     mode: "development",
@@ -46,6 +47,16 @@ module.exports = {
     devServer: {
       port: 8083,
       hot: true,
+      proxy: {
+        '/federation-shell/': {
+          target: 'http://localhost:8081',
+          changeOrigin: true
+        },
+        '/federation-share/': {
+          target: 'http://localhost:8082',
+          changeOrigin: true
+        }
+      },
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
@@ -59,7 +70,7 @@ module.exports = {
       }
     },
     optimization: {
-      runtimeChunk: 'single',
+      // runtimeChunk: 'single',
       // runtimeChunk: false,
       removeAvailableModules: false,
       removeEmptyChunks: false,
@@ -97,7 +108,9 @@ module.exports = {
         publicPath: 'auto',
         templateParameters: {
           'VUE_APP_TITLE': process.env.VUE_APP_TITLE
-        }
+        },
+        chunks: ['__federation_binance__', 'app'],
+        chunksSortMode: 'manual',
       }),
       new ModuleFedSingleRuntimePlugin(PREFIX),
       new ModuleFederationPlugin({
@@ -109,13 +122,7 @@ module.exports = {
         exposes: {
           './components/editor': './src/components/editor.vue',
         },
-        shared: {
-          vue: {
-            eager: true,
-            singleton: true,
-            requiredVersion: '2.7.16'
-          }
-        }
+        shared,
       })
     ],
 }
