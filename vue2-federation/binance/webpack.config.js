@@ -113,7 +113,7 @@ module.exports = {
           vue: {
             eager: true,
             singleton: true,
-            requiredVersion: '2.7.15'
+            requiredVersion: '2.7.16'
           }
         }
       })
